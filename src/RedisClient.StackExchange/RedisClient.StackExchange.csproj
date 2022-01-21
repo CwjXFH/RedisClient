@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\RedisClient.Commons\RedisClient.Commons.csproj" />
     <ProjectReference Include="..\RedisClient.Abstractions\RedisClient.Abstractions.csproj" />
   </ItemGroup>
 

@@ -1,8 +1,10 @@
 ﻿using RedisClient.Abstractions;
+using RedisClient.Commons.Extensions;
 using RedisClient.Models.Consts;
 using RedisClient.Models.Enums;
 using RedisClient.Models.Exceptions;
 using RedisClient.Models.RedisResults;
+using RedisClient.StackExchange.Extensions;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -21,31 +23,31 @@ namespace RedisClient.StackExchange.Internal
         #region Write Operation
         public async Task<long> AppendAsync(string key, string value, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringAppendAsync(key, value);
         }
 
         public async Task<long> IncrByAsync(string key, long increment = 1, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringIncrementAsync(key, increment);
         }
 
         public async Task<long> DecrByAsync(string key, long increment = 1, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringDecrementAsync(key, increment);
         }
 
         public async Task<double> IncrByFloatAsync(string key, double increment, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringIncrementAsync(key, increment);
         }
 
         public async Task<long> SetRangeAsync(string key, uint offset, string value, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             if (offset > MaxSetRagneOffset)
             {
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, $"The maximum allowed offset is {MaxSetRagneOffset}");
@@ -62,17 +64,12 @@ namespace RedisClient.StackExchange.Internal
 
         private async Task<bool> MSetCoreAsync(IDictionary<string, string> keyValues, When when, CancellationToken cancellationToken = default)
         {
-            if (keyValues == null || keyValues.Count <= 0)
+            if (keyValues.IsEmpty())
             {
-                throw new ArgumentException("param must have values", $"{nameof(keyValues)}");
-            }
-            var kvPairs = new List<KeyValuePair<RedisKey, RedisValue>>(keyValues.Count);
-            foreach (var kv in keyValues)
-            {
-                ThrowIfKeyInvalid(kv.Key);
-                kvPairs.Add(new KeyValuePair<RedisKey, RedisValue>(kv.Key, kv.Value));
+                throw new ArgumentException("Param must have values", $"{nameof(keyValues)}");
             }
 
+            var kvPairs = keyValues.ToRedisKeyValueDict();
             return await database.StringSetAsync(kvPairs.ToArray(), when);
         }
         #endregion
@@ -80,20 +77,20 @@ namespace RedisClient.StackExchange.Internal
         #region Read Operation
         public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringGetAsync(key);
         }
 
         public async Task<T> GetAsync<T>(string key, T defaultValue, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             var redisVal = await GetAsync(key, cancellationToken);
             return JsonSerializer.Deserialize<T>(redisVal) ?? defaultValue;
         }
 
         public async Task<string> GetRangeAsync(string key, int start, int end, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringGetRangeAsync(key, start, end);
         }
 
@@ -101,14 +98,10 @@ namespace RedisClient.StackExchange.Internal
         {
             if (keys == null || keys.Count <= 0)
             {
-                throw new ArgumentException("param must have values", $"{nameof(keys)}");
+                throw new ArgumentException("Param must have values", $"{nameof(keys)}");
             }
-            var redisKeys = new List<RedisKey>(keys.Count);
-            foreach (var key in keys)
-            {
-                ThrowIfKeyInvalid(key);
-                redisKeys.Add(new RedisKey(key));
-            }
+
+            var redisKeys = keys.ToRedisKeyCollection();
             var redisVal = await database.StringGetAsync(redisKeys.ToArray());
             var result = new OperationResult<IDictionary<string, string>>(true, new Dictionary<string, string>());
             if (redisVal != null && redisVal.Length > 0)
@@ -132,7 +125,7 @@ namespace RedisClient.StackExchange.Internal
 
         public async Task<long> StrLenAsync(string key, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringLengthAsync(key);
         }
         #endregion
@@ -141,10 +134,10 @@ namespace RedisClient.StackExchange.Internal
         public async Task<OperationResult<string>> SetAsync(string key, string value, TimeSpan? expiry = null, bool keepttl = false, KeyWriteBehavior writeBehavior = KeyWriteBehavior.None
             , bool returnOldValue = false, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             if (returnOldValue && writeBehavior == KeyWriteBehavior.NotExists)
             {
-                throw new RedisCommandSyntaxErrorException("syntax error");
+                throw new RedisCommandSyntaxErrorException("Syntax error");
             }
 
             var expiryArg = "";
@@ -217,13 +210,13 @@ namespace RedisClient.StackExchange.Internal
 
         public async Task<string> GetDelAsync(string key, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             return await database.StringGetDeleteAsync(key);
         }
 
         public async Task<string> GetEXAsync(string key, TimeSpan? expiry, CancellationToken cancellationToken = default)
         {
-            ThrowIfKeyInvalid(key);
+            ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(GETEXLuaScript);
 
             var expiryArg = "PERSIST";

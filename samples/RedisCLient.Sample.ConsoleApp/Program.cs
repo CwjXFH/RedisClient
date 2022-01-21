@@ -24,7 +24,7 @@ var basicOperator = serviceProvider.GetService<IRedisBasicOperator>();
 ////Console.WriteLine(basicOperator.KeyOperator);
 ////Console.WriteLine(basicOperator.KeyOperator);
 
-//await basicOperator!.StringOperator.SetAsync("key", "value", TimeSpan.FromMilliseconds(200));
+await basicOperator!.StringOperator.AppendAsync("key", "value", CancellationToken.None);
 //Console.WriteLine(await basicOperator.StringOperator.GetAsync("key", CancellationToken.None));
 //Console.WriteLine(await basicOperator.KeyOperator.ExistsAsync("key", CancellationToken.None));
 //Thread.Sleep(200);

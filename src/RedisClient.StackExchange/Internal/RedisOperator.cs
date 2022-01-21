@@ -1,5 +1,4 @@
-﻿using RedisClient.Models.Exceptions;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Internal
 {
@@ -10,15 +9,6 @@ namespace RedisClient.StackExchange.Internal
         public RedisOperator(IDatabase database)
         {
             this.database = database;
-
-        }
-
-        protected void ThrowIfKeyInvalid(string key)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new RedisKeyInvalidException("invalid key");
-            }
         }
     }
 }
