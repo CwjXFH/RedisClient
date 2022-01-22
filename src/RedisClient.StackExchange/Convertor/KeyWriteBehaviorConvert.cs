@@ -3,7 +3,7 @@ using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Convertor
 {
-    public class KeyWriteBehaviorConvert
+    internal class KeyWriteBehaviorConvert
     {
         /// <summary>
         /// Convert <see cref="KeyWriteBehavior"/> to <see cref="When"/>

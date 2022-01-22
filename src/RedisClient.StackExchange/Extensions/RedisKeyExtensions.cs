@@ -4,7 +4,7 @@ using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Extensions
 {
-    public static class RedisKeyExtensions
+    internal static class RedisKeyExtensions
     {
         /// <summary>
         /// Convert <see cref="RedisKey"/> collection to string collection.

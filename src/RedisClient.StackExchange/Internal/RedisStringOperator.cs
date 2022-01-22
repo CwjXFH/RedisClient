@@ -3,6 +3,7 @@ using RedisClient.Commons.Extensions;
 using RedisClient.Models.Consts;
 using RedisClient.Models.Enums;
 using RedisClient.Models.Exceptions;
+using RedisClient.Models.Extensions;
 using RedisClient.Models.RedisResults;
 using RedisClient.StackExchange.Extensions;
 using StackExchange.Redis;
@@ -151,15 +152,7 @@ namespace RedisClient.StackExchange.Internal
                 expiryArg = "PX";
                 expiryVal = expiry.Value.TotalMilliseconds;
             }
-            var writeBehave = "";
-            if (writeBehavior == KeyWriteBehavior.Exists)
-            {
-                writeBehave = "XX";
-            }
-            else if (writeBehavior == KeyWriteBehavior.NotExists)
-            {
-                writeBehave = "NX";
-            }
+            var writeBehave = writeBehavior.StringValue();
             var get = returnOldValue ? "GET" : "";
             var parameters = new { key = (RedisKey)key, value, expiryArg, expiryVal, writeBehave, get };
 
@@ -197,7 +190,7 @@ namespace RedisClient.StackExchange.Internal
                 }
             }
 
-            throw new RedisUnsupportedReturnValueException($"GET return type is {redisVal.Type}, value is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException($"GET return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
         public async Task<OperationResult<T>> SetAsync<T>(string key, T value, TimeSpan? expiry, bool keepttl = false, KeyWriteBehavior writeBehavior = KeyWriteBehavior.None
@@ -217,7 +210,6 @@ namespace RedisClient.StackExchange.Internal
         public async Task<string> GetEXAsync(string key, TimeSpan? expiry, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            var luaScript = LuaScript.Prepare(GETEXLuaScript);
 
             var expiryArg = "PERSIST";
             double expiryVal = -1;
@@ -226,8 +218,11 @@ namespace RedisClient.StackExchange.Internal
                 expiryArg = "PX";
                 expiryVal = expiry.Value.TotalMilliseconds;
             }
+            var parameters = new { key = (RedisKey)key, expiryArg, expiryVal };
 
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, new { key = (RedisKey)key, expiryArg, expiryVal });
+            var luaScript = LuaScript.Prepare(GETEXLuaScript);
+            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+
             if (redisVal == null || redisVal.IsNull)
             {
                 return "";

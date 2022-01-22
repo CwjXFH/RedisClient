@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCLient.Sample.ConsoleA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{2B84D07E-136C-4D15-9852-7F28151771AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisClient.Commons", "RedisClient.Commons\RedisClient.Commons.csproj", "{92545609-1DAF-41F0-AED7-C2A6F93B21B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisClient.Commons", "src\RedisClient.Commons\RedisClient.Commons.csproj", "{92545609-1DAF-41F0-AED7-C2A6F93B21B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
