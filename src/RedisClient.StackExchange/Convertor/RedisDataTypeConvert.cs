@@ -8,6 +8,7 @@ namespace RedisClient.StackExchange.Convertor
         public static RedisDataType ToRedisDataType(this RedisType redisType) => redisType switch
         {
             RedisType.None => RedisDataType.None,
+            RedisType.String => RedisDataType.String,
             RedisType.List => RedisDataType.List,
             RedisType.Set => RedisDataType.Set,
             RedisType.SortedSet => RedisDataType.ZSet,

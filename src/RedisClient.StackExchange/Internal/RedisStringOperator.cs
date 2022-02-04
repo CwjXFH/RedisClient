@@ -16,7 +16,7 @@ namespace RedisClient.StackExchange.Internal
         /// <summary>
         /// 2^29 - 1
         /// </summary>
-        private const uint MaxSetRagneOffset = (2 << 28) - 1;
+        private const uint MaxSetRangeOffset = (2 << 28) - 1;
 
         public RedisStringOperator(IDatabase database)
             : base(database) { }
@@ -49,9 +49,9 @@ namespace RedisClient.StackExchange.Internal
         public async Task<long> SetRangeAsync(string key, uint offset, string value, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            if (offset > MaxSetRagneOffset)
+            if (offset > MaxSetRangeOffset)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, $"The maximum allowed offset is {MaxSetRagneOffset}");
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, $"The maximum allowed offset is {MaxSetRangeOffset}");
             }
             var result = await database.StringSetRangeAsync(key, offset, value);
             return (long)result;
@@ -198,7 +198,7 @@ namespace RedisClient.StackExchange.Internal
         {
             var redisVal = JsonSerializer.Serialize(value);
             var writeResult = await SetAsync(key, redisVal, expiry, keepttl, writeBehavior, returnOldValue, cancellationToken);
-            return new OperationResult<T>(writeResult.Successed, default!);
+            return new OperationResult<T>(writeResult.Succeeded, default!);
         }
 
         public async Task<string> GetDelAsync(string key, CancellationToken cancellationToken = default)

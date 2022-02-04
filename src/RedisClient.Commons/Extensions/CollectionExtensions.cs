@@ -4,7 +4,7 @@ namespace RedisClient.Commons.Extensions
 {
     public static class CollectionExtensions
     {
-        public static bool IsEmpty(this ICollection collection)
+        public static bool IsEmpty(this ICollection? collection)
         {
             if (collection == null)
             {
@@ -13,7 +13,7 @@ namespace RedisClient.Commons.Extensions
             return collection.Count <= 0;
         }
 
-        public static bool IsEmpty<T>(this ICollection<T> collection)
+        public static bool IsEmpty<T>(this ICollection<T>? collection)
         {
             if (collection == null)
             {
