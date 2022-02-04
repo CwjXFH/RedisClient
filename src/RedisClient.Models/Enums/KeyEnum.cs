@@ -46,10 +46,41 @@
         LessThan = 4
     }
 
-    public enum KeyTTLType
+    /// <summary>
+    /// TTL command return type.
+    /// </summary>
+    public enum KeyTTLResultType
     {
+        /// <summary>
+        /// Key doesn't exist
+        /// </summary>
         KeyNotExists = -2,
+        /// <summary>
+        /// Key exists, but has no associated expire
+        /// </summary>
         NoTTL = -1,
+        /// <summary>
+        /// Key exists and associated expire
+        /// </summary>
         HasTTL = 1
+    }
+
+    /// <summary>
+    /// EXPIRETIME command return type.
+    /// </summary>
+    public enum KeyExpireTimeResultType
+    {
+        /// <summary>
+        /// Key doesn't exist
+        /// </summary>
+        KeyNotExists = -2,
+        /// <summary>
+        /// Key exists, but has no associated expire
+        /// </summary>
+        NoTimestamp = -1,
+        /// <summary>
+        /// Key exists and associated expire
+        /// </summary>
+        HasTimestamp = 1
     }
 }

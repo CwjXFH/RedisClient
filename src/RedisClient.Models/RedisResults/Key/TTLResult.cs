@@ -2,30 +2,40 @@
 
 namespace RedisClient.Models.RedisResults.Key
 {
-    public record class TTLResult(KeyTTLType TTLType, long TTL)
+    public record TTLResult
     {
-        public static TTLResult CreateTTLResult(long val)
+        private TTLResult(KeyTTLResultType ttlType, long ttl)
         {
-            var ttlType = KeyTTLType.HasTTL;
-            var ttl = 0L;
-            if (val == -1)
+            ResultType = ttlType;
+            TTL = ttl;
+        }
+
+        public KeyTTLResultType ResultType { get; }
+
+        public long TTL { get; }
+
+        public static TTLResult CreateTTLResult(long ttl)
+        {
+            var ttlType = KeyTTLResultType.HasTTL;
+            var ttlVal = 0L;
+            if (ttl == (int)KeyTTLResultType.NoTTL)
             {
-                ttlType = KeyTTLType.NoTTL;
+                ttlType = KeyTTLResultType.NoTTL;
             }
-            else if (val == -2)
+            else if (ttl == (int)KeyTTLResultType.KeyNotExists)
             {
-                ttlType = KeyTTLType.KeyNotExists;
+                ttlType = KeyTTLResultType.KeyNotExists;
             }
-            else if (val >= 0)
+            else if (ttl >= 0)
             {
-                ttl = val;
+                ttlVal = ttl;
             }
             else
             {
-                throw new ArgumentException($"Invalid argument value: {val}", $"{nameof(val)}");
+                throw new ArgumentException($"Invalid argument value: {ttl}", $"{nameof(ttl)}");
             }
 
-            return new TTLResult(ttlType, ttl);
+            return new TTLResult(ttlType, ttlVal);
         }
     }
 }
