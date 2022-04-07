@@ -4,11 +4,11 @@ namespace RedisClient.StackExchange.Internal
 {
     internal class RedisOperator
     {
-        protected readonly IDatabase database;
+        protected readonly IDatabase Database;
 
         public RedisOperator(IDatabase database)
         {
-            this.database = database;
+            this.Database = database;
         }
     }
 }

@@ -25,25 +25,25 @@ namespace RedisClient.StackExchange.Internal
         public async Task<long> AppendAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringAppendAsync(key, value);
+            return await Database.StringAppendAsync(key, value);
         }
 
         public async Task<long> IncrByAsync(string key, long increment = 1, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringIncrementAsync(key, increment);
+            return await Database.StringIncrementAsync(key, increment);
         }
 
         public async Task<long> DecrByAsync(string key, long increment = 1, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringDecrementAsync(key, increment);
+            return await Database.StringDecrementAsync(key, increment);
         }
 
         public async Task<double> IncrByFloatAsync(string key, double increment, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringIncrementAsync(key, increment);
+            return await Database.StringIncrementAsync(key, increment);
         }
 
         public async Task<long> SetRangeAsync(string key, uint offset, string value, CancellationToken cancellationToken = default)
@@ -53,7 +53,7 @@ namespace RedisClient.StackExchange.Internal
             {
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, $"The maximum allowed offset is {MaxSetRangeOffset}");
             }
-            var result = await database.StringSetRangeAsync(key, offset, value);
+            var result = await Database.StringSetRangeAsync(key, offset, value);
             return (long)result;
         }
 
@@ -71,7 +71,7 @@ namespace RedisClient.StackExchange.Internal
             }
 
             var kvPairs = keyValues.ToRedisKeyValueDict();
-            return await database.StringSetAsync(kvPairs.ToArray(), when);
+            return await Database.StringSetAsync(kvPairs.ToArray(), when);
         }
         #endregion
 
@@ -79,7 +79,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringGetAsync(key);
+            return await Database.StringGetAsync(key);
         }
 
         public async Task<T> GetAsync<T>(string key, T defaultValue, CancellationToken cancellationToken = default)
@@ -92,7 +92,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<string> GetRangeAsync(string key, int start, int end, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringGetRangeAsync(key, start, end);
+            return await Database.StringGetRangeAsync(key, start, end);
         }
 
         public async Task<OperationResult<IDictionary<string, string>>> MGetAsync(ICollection<string> keys, CancellationToken cancellationToken = default)
@@ -103,7 +103,7 @@ namespace RedisClient.StackExchange.Internal
             }
 
             var redisKeys = keys.ToRedisKeyCollection();
-            var redisVal = await database.StringGetAsync(redisKeys.ToArray());
+            var redisVal = await Database.StringGetAsync(redisKeys.ToArray());
             var result = new OperationResult<IDictionary<string, string>>(true, new Dictionary<string, string>());
             if (redisVal != null && redisVal.Length > 0)
             {
@@ -127,7 +127,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<long> StrLenAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringLengthAsync(key);
+            return await Database.StringLengthAsync(key);
         }
         #endregion
 
@@ -157,7 +157,7 @@ namespace RedisClient.StackExchange.Internal
             var parameters = new { key = (RedisKey)key, value, expiryArg, expiryVal, writeBehave, get };
 
             var luaScript = LuaScript.Prepare(SETLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             /*
              Simple string reply: OK if SET was executed correctly.
@@ -204,7 +204,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<string> GetDelAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.StringGetDeleteAsync(key);
+            return await Database.StringGetDeleteAsync(key);
         }
 
         public async Task<string> GetEXAsync(string key, TimeSpan? expiry, CancellationToken cancellationToken = default)
@@ -221,7 +221,7 @@ namespace RedisClient.StackExchange.Internal
             var parameters = new { key = (RedisKey)key, expiryArg, expiryVal };
 
             var luaScript = LuaScript.Prepare(GETEXLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal == null || redisVal.IsNull)
             {

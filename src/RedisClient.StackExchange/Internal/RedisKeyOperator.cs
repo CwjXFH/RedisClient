@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Runtime.InteropServices.ComTypes;
-using RedisClient.Abstractions;
+﻿using RedisClient.Abstractions;
 using RedisClient.Commons.Extensions;
 using RedisClient.Models.Enums;
 using RedisClient.Models.Exceptions;
@@ -22,7 +20,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<bool> DelAsync(string key, CancellationToken cancellationToken)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.KeyDeleteAsync(key);
+            return await Database.KeyDeleteAsync(key);
         }
 
         public async Task<long> DelAsync(ICollection<string> keys, CancellationToken cancellationToken = default)
@@ -32,7 +30,7 @@ namespace RedisClient.StackExchange.Internal
                 throw new ArgumentException("param must have values", $"{nameof(keys)}");
             }
             var redisKeys = keys.ToRedisKeyCollection();
-            return await database.KeyDeleteAsync(redisKeys.ToArray());
+            return await Database.KeyDeleteAsync(redisKeys.ToArray());
         }
 
         public async Task<bool> UnlinkAsync(string key, CancellationToken cancellationToken = default)
@@ -45,7 +43,7 @@ namespace RedisClient.StackExchange.Internal
             var redisKeys = keys.ToRedisKeyCollection();
 
             var luaScript = LuaScript.Prepare(UNLINKLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript.OriginalScript, redisKeys.ToArray(), new RedisValue[] { keys.Count });
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript.OriginalScript, redisKeys.ToArray(), new RedisValue[] { keys.Count });
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -63,7 +61,7 @@ namespace RedisClient.StackExchange.Internal
             var parameters = new { key = (RedisKey)key, seconds, expireBehavior = expireBehaviorVal };
 
             var luaScript = LuaScript.Prepare(EXPIRELuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -81,7 +79,7 @@ namespace RedisClient.StackExchange.Internal
             var parameters = new { key = (RedisKey)key, timestamp, expireBehavior = expireBehaviorVal };
 
             var luaScript = LuaScript.Prepare(EXPIREATLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -99,7 +97,7 @@ namespace RedisClient.StackExchange.Internal
             var parameters = new { key = (RedisKey)key, milliseconds, expireBehavior = expireBehaviorVal };
 
             var luaScript = LuaScript.Prepare(PEXPIRELuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -117,7 +115,7 @@ namespace RedisClient.StackExchange.Internal
             var parameters = new { key = (RedisKey)key, timestamp, expireBehavior = expireBehaviorVal };
 
             var luaScript = LuaScript.Prepare(PEXPIREATLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, parameters);
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -150,7 +148,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<bool> PersistAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.KeyPersistAsync(key);
+            return await Database.KeyPersistAsync(key);
         }
         #endregion
 
@@ -158,20 +156,20 @@ namespace RedisClient.StackExchange.Internal
         public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            return await database.KeyExistsAsync(key);
+            return await Database.KeyExistsAsync(key);
         }
 
         public async Task<long> ExistsAsync(ICollection<string> keys, CancellationToken cancellationToken = default)
         {
             var redisKeys = keys.ToRedisKeyCollection();
-            return await database.KeyExistsAsync(redisKeys.ToArray());
+            return await Database.KeyExistsAsync(redisKeys.ToArray());
         }
 
         public async Task<OperationResult<TTLResult>> TTLAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(TTLLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, new { key });
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
                 var val = (long)redisVal;
@@ -187,7 +185,7 @@ namespace RedisClient.StackExchange.Internal
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(PTTLLuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, new { key });
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
                 var val = (long)redisVal;
@@ -207,14 +205,14 @@ namespace RedisClient.StackExchange.Internal
         public async Task<long> TouchAsync(ICollection<string> keys, CancellationToken cancellationToken = default)
         {
             var redisKeys = keys.ToRedisKeyCollection();
-            return await database.KeyTouchAsync(redisKeys.ToArray());
+            return await Database.KeyTouchAsync(redisKeys.ToArray());
         }
 
         public async Task<OperationResult<ExpireTimeResult>> ExpireTimeAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(EXPIRETIMELuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, new { key });
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
                 var val = (long)redisVal;
@@ -230,7 +228,7 @@ namespace RedisClient.StackExchange.Internal
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(PEXPIRETIMELuaScript);
-            var redisVal = await database.ScriptEvaluateAsync(luaScript, new { key });
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
                 var val = (long)redisVal;
@@ -245,7 +243,7 @@ namespace RedisClient.StackExchange.Internal
         public async Task<RedisDataType> TypeAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            var redisVal = await database.KeyTypeAsync(key);
+            var redisVal = await Database.KeyTypeAsync(key);
             return redisVal.ToRedisDataType();
         }
         #endregion

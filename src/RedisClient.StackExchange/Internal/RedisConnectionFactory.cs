@@ -7,15 +7,15 @@ namespace RedisClient.StackExchange.Internal
 {
     internal class RedisConnectionFactory : IRedisConnectionFactory<ConnectionMultiplexer>, IDisposable
     {
-        private readonly SemaphoreSlim _createConnSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _createConnSemaphore = new(1, 1);
 
         private ConnectionMultiplexer? _redisConnection;
 
-        private readonly IOptionsMonitor<RedisOptions> _optionsMonitor;
+        private readonly RedisOptions _options;
 
         public RedisConnectionFactory(IOptionsMonitor<RedisOptions> optionsMonitor)
         {
-            this._optionsMonitor = optionsMonitor;
+            this._options = optionsMonitor.CurrentValue;
         }
 
         public async Task<ConnectionMultiplexer> CreateAsync(CancellationToken cancellationToken = default)
@@ -25,12 +25,9 @@ namespace RedisClient.StackExchange.Internal
                 return _redisConnection;
             }
 
-            await _createConnSemaphore.WaitAsync();
-            var options = _optionsMonitor.CurrentValue;
-            _redisConnection = await ConnectionMultiplexer.ConnectAsync($"{options.Host}:{options.Port}", opt =>
-            {
-                opt.Password = options.Password;
-            });
+            await _createConnSemaphore.WaitAsync(cancellationToken);
+            _redisConnection ??= await ConnectionMultiplexer.ConnectAsync($"{_options.Host}:{_options.Port}",
+                opt => { opt.Password = _options.Password; });
             _createConnSemaphore.Release();
 
             return _redisConnection;
@@ -44,22 +41,14 @@ namespace RedisClient.StackExchange.Internal
             }
 
             _createConnSemaphore.Wait();
-            var options = _optionsMonitor.CurrentValue;
-            _redisConnection = ConnectionMultiplexer.Connect($"{options.Host}:{options.Port}", opt =>
-            {
-                opt.Password = options.Password;
-            });
+            _redisConnection ??=
+                ConnectionMultiplexer.Connect($"{_options.Host}:{_options.Port}", opt => { opt.Password = _options.Password; });
             _createConnSemaphore.Release();
 
             return _redisConnection;
         }
 
         public void Dispose()
-        {
-            DisposeConnection();
-        }
-
-        private void DisposeConnection()
         {
             _redisConnection?.Dispose();
         }
