@@ -1,24 +1,14 @@
-﻿using RedisClient.Models.Exceptions;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Internal
 {
     internal class RedisOperator
     {
-        protected readonly IDatabase database;
+        protected readonly IDatabase Database;
 
         public RedisOperator(IDatabase database)
         {
-            this.database = database;
-
-        }
-
-        protected void ThrowIfKeyInvalid(string key)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new RedisKeyInvalidException("invalid key");
-            }
+            this.Database = database;
         }
     }
 }

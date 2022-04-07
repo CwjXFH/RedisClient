@@ -1,4 +1,4 @@
-﻿namespace RedisClient.Models.RedisResults
+﻿namespace RedisClient.Models.RedisResults.String
 {
     public class LCSResult<TResult>
     {

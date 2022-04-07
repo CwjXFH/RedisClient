@@ -1,36 +1,29 @@
 ﻿namespace RedisClient.Models.RedisResults
 {
-    public readonly struct OperationResult
+    public readonly record struct OperationResult(bool Succeeded)
     {
-        public OperationResult(bool successed)
-        {
-            Successed = successed;
-        }
+        public static implicit operator bool(OperationResult result) => result.Succeeded;
 
-        public bool Successed { get; init; }
-
-        public static implicit operator bool(OperationResult result) => result.Successed;
-
-        public static implicit operator OperationResult(bool successed) => new OperationResult(successed);
+        public static implicit operator OperationResult(bool succeeded) => new OperationResult(succeeded);
     }
 
 
-    public readonly struct OperationResult<T> where T : class
+    public class OperationResult<T> where T : class
     {
-        public OperationResult(bool successed, T data)
+        public OperationResult(bool succeeded, T data)
         {
-            Successed = successed;
+            Succeeded = succeeded;
             Data = data;
         }
 
 
-        public bool Successed { get; init; }
+        public bool Succeeded { get; init; }
         public T Data { get; init; }
 
         // implicit convert will lose data
-        //public static implicit operator bool(OperationResult<T> result) => result.Successed;
+        public static explicit operator bool(OperationResult<T> result) => result.Succeeded;
 
-        public static implicit operator OperationResult<T>(bool successed) => new OperationResult<T>(successed, default!);
+        public static implicit operator OperationResult<T>(bool succeeded) => new OperationResult<T>(succeeded, default!);
     }
 
 }

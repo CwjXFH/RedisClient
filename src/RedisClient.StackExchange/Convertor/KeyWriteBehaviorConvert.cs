@@ -3,14 +3,14 @@ using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Convertor
 {
-    public class KeyWriteBehaviorConvert
+    internal static class KeyWriteBehaviorConvert
     {
         /// <summary>
         /// Convert <see cref="KeyWriteBehavior"/> to <see cref="When"/>
         /// </summary>
         /// <param name="keyWriteBehavior"></param>
         /// <returns></returns>
-        public static When ToWhen(KeyWriteBehavior keyWriteBehavior) => keyWriteBehavior switch
+        public static When ToWhen(this KeyWriteBehavior keyWriteBehavior) => keyWriteBehavior switch
         {
             KeyWriteBehavior.None => When.Always,
             KeyWriteBehavior.Exists => When.Exists,
