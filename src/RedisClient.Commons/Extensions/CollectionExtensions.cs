@@ -4,23 +4,21 @@ namespace RedisClient.Commons.Extensions
 {
     public static class CollectionExtensions
     {
-        public static bool IsEmpty(this ICollection? collection)
+        public static bool IsEmpty(this IEnumerable? input)
         {
-            if (collection == null)
+            if (input == null)
             {
                 return true;
             }
-            return collection.Count <= 0;
-        }
 
-        public static bool IsEmpty<T>(this ICollection<T>? collection)
-        {
-            if (collection == null)
+            var count = 0;
+            foreach (var _ in input)
             {
-                return true;
+                count += 1;
+                break;
             }
-            return collection.Count <= 0;
-        }
 
+            return count <= 0;
+        }
     }
 }

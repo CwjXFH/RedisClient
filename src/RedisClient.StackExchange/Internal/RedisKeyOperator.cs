@@ -14,9 +14,12 @@ namespace RedisClient.StackExchange.Internal
     internal class RedisKeyOperator : RedisOperator, IRedisKeyOperator
     {
         public RedisKeyOperator(IDatabase database)
-            : base(database) { }
+            : base(database)
+        {
+        }
 
         #region Write Operation
+
         public async Task<bool> DelAsync(string key, CancellationToken cancellationToken)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
@@ -29,6 +32,7 @@ namespace RedisClient.StackExchange.Internal
             {
                 throw new ArgumentException("param must have values", $"{nameof(keys)}");
             }
+
             var redisKeys = keys.ToRedisKeyCollection();
             return await Database.KeyDeleteAsync(redisKeys.ToArray());
         }
@@ -43,17 +47,21 @@ namespace RedisClient.StackExchange.Internal
             var redisKeys = keys.ToRedisKeyCollection();
 
             var luaScript = LuaScript.Prepare(UNLINKLuaScript);
-            var redisVal = await Database.ScriptEvaluateAsync(luaScript.OriginalScript, redisKeys.ToArray(), new RedisValue[] { keys.Count });
+            var redisVal = await Database.ScriptEvaluateAsync(luaScript.OriginalScript, redisKeys.ToArray(),
+                new RedisValue[] { keys.Count });
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
                 return (long)redisVal;
             }
 
-            throw new RedisUnsupportedReturnValueException($"UNLINK return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"UNLINK return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
-        public async Task<bool> ExpireAsync(string key, long seconds, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default)
+        public async Task<bool> ExpireAsync(string key, long seconds,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
 
@@ -68,10 +76,13 @@ namespace RedisClient.StackExchange.Internal
                 return (long)redisVal == 1;
             }
 
-            throw new RedisUnsupportedReturnValueException($"EXPIRE return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"EXPIRE return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
-        public async Task<bool> ExpireAtAsync(string key, long timestamp, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default)
+        public async Task<bool> ExpireAtAsync(string key, long timestamp,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
 
@@ -86,10 +97,13 @@ namespace RedisClient.StackExchange.Internal
                 return (long)redisVal == 1;
             }
 
-            throw new RedisUnsupportedReturnValueException($"EXPIREAT return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"EXPIREAT return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
-        public async Task<bool> PExpireAsync(string key, long milliseconds, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default)
+        public async Task<bool> PExpireAsync(string key, long milliseconds,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
 
@@ -104,10 +118,13 @@ namespace RedisClient.StackExchange.Internal
                 return (long)redisVal == 1;
             }
 
-            throw new RedisUnsupportedReturnValueException($"PEXPIRE return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"PEXPIRE return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
-        public async Task<bool> PExpireAtAsync(string key, long timestamp, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default)
+        public async Task<bool> PExpireAtAsync(string key, long timestamp,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
 
@@ -122,10 +139,13 @@ namespace RedisClient.StackExchange.Internal
                 return (long)redisVal == 1;
             }
 
-            throw new RedisUnsupportedReturnValueException($"PEXPIREAT return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"PEXPIREAT return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
-        public async Task<bool> ExpireAsync(string key, TimeSpan timeSpan, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default)
+        public async Task<bool> ExpireAsync(string key, TimeSpan timeSpan,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default)
         {
             if (timeSpan.Milliseconds > 0)
             {
@@ -135,14 +155,17 @@ namespace RedisClient.StackExchange.Internal
             return await ExpireAsync(key, (long)timeSpan.TotalSeconds, expireBehavior, cancellationToken);
         }
 
-        public async Task<bool> ExpireAtAsync(string key, DateTime dateTime, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default)
+        public async Task<bool> ExpireAtAsync(string key, DateTime dateTime,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default)
         {
             if (dateTime.Millisecond > 0)
             {
-                return await PExpireAtAsync(key, dateTime.UnixMillisecondsTimestamp(), expireBehavior, cancellationToken);
+                return await PExpireAtAsync(key, dateTime.UnixMillisecondsTimestamp(), expireBehavior,
+                    cancellationToken);
             }
 
-            return await ExpireAtAsync(key, dateTime.UnixTimestamp(), expireBehavior, cancellationToken);
+            return await ExpireAtAsync(key, dateTime.UnixSecondsTimestamp(), expireBehavior, cancellationToken);
         }
 
         public async Task<bool> PersistAsync(string key, CancellationToken cancellationToken = default)
@@ -150,9 +173,17 @@ namespace RedisClient.StackExchange.Internal
             ThrowHelper.ThrowIfKeyInvalid(key);
             return await Database.KeyPersistAsync(key);
         }
+
+        public async Task<bool> RenameAsync(string key, string newKey, CancellationToken cancellationToken)
+        {
+            ThrowHelper.ThrowIfExistInvalidKey(new[] { key, newKey });
+            return await Database.KeyRenameAsync(key, newKey);
+        }
+
         #endregion
 
         #region Read Operation
+
         public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
@@ -165,7 +196,8 @@ namespace RedisClient.StackExchange.Internal
             return await Database.KeyExistsAsync(redisKeys.ToArray());
         }
 
-        public async Task<OperationResult<TTLResult>> TTLAsync(string key, CancellationToken cancellationToken = default)
+        public async Task<OperationResult<TTLResult>> TTLAsync(string key,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(TTLLuaScript);
@@ -178,10 +210,12 @@ namespace RedisClient.StackExchange.Internal
                 return new OperationResult<TTLResult>(true, ttlResult);
             }
 
-            throw new RedisUnsupportedReturnValueException($"TTL return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"TTL return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
-        public async Task<OperationResult<TTLResult>> PTTLAsync(string key, CancellationToken cancellationToken = default)
+        public async Task<OperationResult<TTLResult>> PTTLAsync(string key,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(PTTLLuaScript);
@@ -194,7 +228,8 @@ namespace RedisClient.StackExchange.Internal
                 return new OperationResult<TTLResult>(true, ttlResult);
             }
 
-            throw new RedisUnsupportedReturnValueException($"TTL return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"TTL return type is {redisVal.Type}, value == null is {redisVal.IsNull}");
         }
 
         public async Task<bool> TouchAsync(string key, CancellationToken cancellationToken = default)
@@ -208,7 +243,8 @@ namespace RedisClient.StackExchange.Internal
             return await Database.KeyTouchAsync(redisKeys.ToArray());
         }
 
-        public async Task<OperationResult<ExpireTimeResult>> ExpireTimeAsync(string key, CancellationToken cancellationToken = default)
+        public async Task<OperationResult<ExpireTimeResult>> ExpireTimeAsync(string key,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(EXPIRETIMELuaScript);
@@ -221,10 +257,12 @@ namespace RedisClient.StackExchange.Internal
                 return new OperationResult<ExpireTimeResult>(true, result);
             }
 
-            throw new RedisUnsupportedReturnValueException($"EXPIRETIME return type is {redisVal.Type}, value == is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"EXPIRETIME return type is {redisVal.Type}, value == is {redisVal.IsNull}");
         }
 
-        public async Task<OperationResult<ExpireTimeResult>> PExpireTimeAsync(string key, CancellationToken cancellationToken = default)
+        public async Task<OperationResult<ExpireTimeResult>> PExpireTimeAsync(string key,
+            CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
             var luaScript = LuaScript.Prepare(PEXPIRETIMELuaScript);
@@ -237,7 +275,8 @@ namespace RedisClient.StackExchange.Internal
                 return new OperationResult<ExpireTimeResult>(true, result);
             }
 
-            throw new RedisUnsupportedReturnValueException($"PEXPIRETIME return type is {redisVal.Type}, value == is {redisVal.IsNull}");
+            throw new RedisUnsupportedReturnValueException(
+                $"PEXPIRETIME return type is {redisVal.Type}, value == is {redisVal.IsNull}");
         }
 
         public async Task<RedisDataType> TypeAsync(string key, CancellationToken cancellationToken = default)
@@ -246,6 +285,7 @@ namespace RedisClient.StackExchange.Internal
             var redisVal = await Database.KeyTypeAsync(key);
             return redisVal.ToRedisDataType();
         }
+
         #endregion
 
         #region lua scripts
@@ -266,18 +306,21 @@ if @expireBehavior == '' then
 else
     return redis.pcall(command, @key, @seconds, @expireBehavior)
 end";
+
         private const string PEXPIRELuaScript = @"local command = 'PEXPIRE'
 if @expireBehavior == '' then
     return redis.pcall(command, @key, @seconds)
 else
     return redis.pcall(command, @key, @seconds, @expireBehavior)
 end";
+
         private const string EXPIREATLuaScript = @"local command = 'EXPIREAT'
 if @expireBehavior == '' then
     return redis.pcall(command, @key, @timestamp)
 else
     return redis.pcall(command, @key, @timestamp, @expireBehavior)
 end";
+
         private const string PEXPIREATLuaScript = @"local command = 'EXPIREAT'
 if @expireBehavior == '' then
     return redis.pcall(command, @key, @timestamp)
@@ -290,6 +333,7 @@ end";
 
         private const string EXPIRETIMELuaScript = @"return redis.pcall('EXPIRETIME', @key)";
         private const string PEXPIRETIMELuaScript = @"return redis.pcall('PEXPIRETIME', @key)";
+
         #endregion
     }
 }

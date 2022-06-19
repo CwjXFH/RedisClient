@@ -11,16 +11,19 @@ namespace RedisClient.Abstractions
     public interface IRedisKeyOperator
     {
         #region Write Operation
+
         /// <summary>
         /// Removes the specified key. A key is ignored if it does not exist.
         /// </summary>
         /// <returns>True if the key was removed.</returns>
         Task<bool> DelAsync(string key, CancellationToken cancellationToken);
+
         /// <summary>
         /// Removes the specified keys. A key is ignored if it does not exist.
         /// </summary>
         /// <returns>The number of keys that were removed.</returns>
         Task<long> DelAsync(ICollection<string> keys, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Like the Del command, it removes the specified key and ignored if a key does not exist.
         /// </summary>
@@ -30,6 +33,7 @@ namespace RedisClient.Abstractions
         /// </remarks>
         /// <returns>True if the key was removed.</returns>
         Task<bool> UnlinkAsync(string key, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Like the Del command, it removes the specified keys and ignored if a key does not exist.
         /// </summary>
@@ -39,6 +43,7 @@ namespace RedisClient.Abstractions
         /// </remarks>
         /// <returns>The number of keys that were unlinked.</returns>
         Task<long> UnlinkAsync(ICollection<string> keys, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Set a timeout in seconds on key. After the timeout has expired, the key will automatically be deleted.
         /// </summary>
@@ -48,7 +53,10 @@ namespace RedisClient.Abstractions
         /// True if the timeout was set. Otherwise false. e.g. key doesn't exist, 
         /// or operation skipped due to the provided arguments.
         /// </returns>
-        Task<bool> ExpireAsync(string key, long seconds, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default);
+        Task<bool> ExpireAsync(string key, long seconds,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Set an absolute unix timestamp on key. After that the key will deleted immediately.
         /// </summary>
@@ -58,7 +66,10 @@ namespace RedisClient.Abstractions
         /// True if the timeout was set. Otherwise false. e.g. key doesn't exist, 
         /// or operation skipped due to the provided arguments.
         /// </returns>
-        Task<bool> ExpireAtAsync(string key, long timestamp, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default);
+        Task<bool> ExpireAtAsync(string key, long timestamp,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Set a timeout in milliseconds on key. After the timeout has expired, the key will automatically be deleted.
         /// </summary>
@@ -68,7 +79,10 @@ namespace RedisClient.Abstractions
         /// True if the timeout was set. Otherwise false. e.g. key doesn't exist, 
         /// or operation skipped due to the provided arguments.
         /// </returns>
-        Task<bool> PExpireAsync(string key, long milliseconds, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default);
+        Task<bool> PExpireAsync(string key, long milliseconds,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Set a timeout on key. After the timeout has expired, the key will automatically be deleted.
         /// </summary>
@@ -77,7 +91,10 @@ namespace RedisClient.Abstractions
         /// True if the timeout was set. Otherwise false. e.g. key doesn't exist, 
         /// or operation skipped due to the provided arguments.
         /// </returns>
-        Task<bool> ExpireAsync(string key, TimeSpan timeSpan, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default);
+        Task<bool> ExpireAsync(string key, TimeSpan timeSpan,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Set an absolute unix timestamp on key. After that the key will deleted immediately.
         /// </summary>
@@ -86,35 +103,58 @@ namespace RedisClient.Abstractions
         /// True if the timeout was set. Otherwise false. e.g. key doesn't exist, 
         /// or operation skipped due to the provided arguments.
         /// </returns>
-        Task<bool> ExpireAtAsync(string key, DateTime dateTime, KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None, CancellationToken cancellationToken = default);
+        Task<bool> ExpireAtAsync(string key, DateTime dateTime,
+            KeySetExpireBehavior expireBehavior = KeySetExpireBehavior.None,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Alters the last access time of key. A key is ignored if it does not exist.
         /// </summary>
         Task<bool> TouchAsync(string key, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Alerts the last access time of keys. A key is ignored if it does not exist.
         /// </summary>
         /// <returns>The number of keys that were touched.</returns>
         Task<long> TouchAsync(ICollection<string> keys, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Remove the existing timeout on the key, that the key will never expire.
         /// </summary>
         /// <returns>True if the timeout was removed. Otherwise false. e.g. key doesn't exist, or key has no associated expire. </returns>
         Task<bool> PersistAsync(string key, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Renames key to newKey
+        /// </summary>
+        /// <remarks>
+        /// If newkey already exists it is overwritten, when this happens RENAME executes an implicit DEL operation,
+        /// so if the deleted key contains a very big value it may cause high latency even if RENAME itself is
+        /// usually a constant-time operation.
+        /// 
+        /// In Cluster mode, both key and newkey must be in the same hash slot,
+        /// meaning that in practice only keys that have the same hash tag can be reliably renamed in cluster.
+        /// </remarks>
+        /// <returns>Error when key does not exist</returns>
+        Task<bool> RenameAsync(string key, string newKey, CancellationToken cancellationToken = default);
+
         #endregion
 
         #region Read Operation
+
         /// <summary>
         /// Return if key exists.
         /// </summary>
         /// <returns>True if key exists.s</returns>
         Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Return if key exists.
         /// </summary>
         /// <remarks>Redis version >= 3.0.3: Accepts multiple `key` arguments.</remarks>
         /// <returns>Specifically the number of keys that exist from those specified as arguments.</returns>
         Task<long> ExistsAsync(ICollection<string> keys, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Returns the remaining time in seconds to live of a key that has a timeout.
         /// </summary>
@@ -124,6 +164,7 @@ namespace RedisClient.Abstractions
         /// -2 key does not exist.
         /// </returns>
         Task<OperationResult<TTLResult>> TTLAsync(string key, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Returns the remaining time in milliseconds to live of a key that has a timeout.
         /// </summary>
@@ -133,6 +174,7 @@ namespace RedisClient.Abstractions
         /// -2 key does not exist.
         /// </returns>
         Task<OperationResult<TTLResult>> PTTLAsync(string key, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Returns the absolute Unix timestamp in seconds at which the given key will expire.
         /// </summary>
@@ -141,7 +183,9 @@ namespace RedisClient.Abstractions
         /// -1 if the key exists but has no associated expiration time,
         /// -2 if the key does not exist.
         /// </returns>
-        Task<OperationResult<ExpireTimeResult>> ExpireTimeAsync(string key, CancellationToken cancellationToken = default);
+        Task<OperationResult<ExpireTimeResult>> ExpireTimeAsync(string key,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Returns the absolute Unix timestamp in Milliseconds at which the given key will expire.
         /// </summary>
@@ -150,12 +194,15 @@ namespace RedisClient.Abstractions
         /// -1 if the key exists but has no associated expiration time,
         /// -2 if the key does not exist.
         /// </returns>
-        Task<OperationResult<ExpireTimeResult>> PExpireTimeAsync(string key, CancellationToken cancellationToken = default);
+        Task<OperationResult<ExpireTimeResult>> PExpireTimeAsync(string key,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Returns the type of the value stored at key.
         /// </summary>
         /// <returns>Type of key, or none when key does not exist.</returns>
         Task<RedisDataType> TypeAsync(string key, CancellationToken cancellationToken = default);
+
         #endregion
     }
 }
