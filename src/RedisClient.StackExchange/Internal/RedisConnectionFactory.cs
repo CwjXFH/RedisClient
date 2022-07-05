@@ -50,6 +50,7 @@ namespace RedisClient.StackExchange.Internal
 
         public void Dispose()
         {
+            _createConnSemaphore.Dispose();
             _redisConnection?.Dispose();
         }
     }

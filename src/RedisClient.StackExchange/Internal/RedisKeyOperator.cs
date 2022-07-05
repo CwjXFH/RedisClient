@@ -1,12 +1,12 @@
 ﻿using RedisClient.Abstractions;
 using RedisClient.Commons.Extensions;
+using RedisClient.Commons.Lua;
 using RedisClient.Models.Enums;
 using RedisClient.Models.Exceptions;
 using RedisClient.Models.Extensions;
 using RedisClient.Models.RedisResults;
 using RedisClient.Models.RedisResults.Key;
 using RedisClient.StackExchange.Convertor;
-using RedisClient.StackExchange.Extensions;
 using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Internal
@@ -46,7 +46,7 @@ namespace RedisClient.StackExchange.Internal
         {
             var redisKeys = keys.ToRedisKeyCollection();
 
-            var luaScript = LuaScript.Prepare(UNLINKLuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.UNLINK);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript.OriginalScript, redisKeys.ToArray(),
                 new RedisValue[] { keys.Count });
 
@@ -68,7 +68,7 @@ namespace RedisClient.StackExchange.Internal
             var expireBehaviorVal = expireBehavior.StringValue();
             var parameters = new { key = (RedisKey)key, seconds, expireBehavior = expireBehaviorVal };
 
-            var luaScript = LuaScript.Prepare(EXPIRELuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.EXPIRE);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
@@ -89,7 +89,7 @@ namespace RedisClient.StackExchange.Internal
             var expireBehaviorVal = expireBehavior.StringValue();
             var parameters = new { key = (RedisKey)key, timestamp, expireBehavior = expireBehaviorVal };
 
-            var luaScript = LuaScript.Prepare(EXPIREATLuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.EXPIREAT);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
@@ -110,7 +110,7 @@ namespace RedisClient.StackExchange.Internal
             var expireBehaviorVal = expireBehavior.StringValue();
             var parameters = new { key = (RedisKey)key, milliseconds, expireBehavior = expireBehaviorVal };
 
-            var luaScript = LuaScript.Prepare(PEXPIRELuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.PEXPIRE);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
@@ -131,7 +131,7 @@ namespace RedisClient.StackExchange.Internal
             var expireBehaviorVal = expireBehavior.StringValue();
             var parameters = new { key = (RedisKey)key, timestamp, expireBehavior = expireBehaviorVal };
 
-            var luaScript = LuaScript.Prepare(PEXPIREATLuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.PEXPIREAT);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
@@ -200,7 +200,8 @@ namespace RedisClient.StackExchange.Internal
             CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            var luaScript = LuaScript.Prepare(TTLLuaScript);
+
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.TTL);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -218,7 +219,7 @@ namespace RedisClient.StackExchange.Internal
             CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            var luaScript = LuaScript.Prepare(PTTLLuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.PTTL);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -247,7 +248,8 @@ namespace RedisClient.StackExchange.Internal
             CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            var luaScript = LuaScript.Prepare(EXPIRETIMELuaScript);
+
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.EXPIRETIME);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -265,7 +267,8 @@ namespace RedisClient.StackExchange.Internal
             CancellationToken cancellationToken = default)
         {
             ThrowHelper.ThrowIfKeyInvalid(key);
-            var luaScript = LuaScript.Prepare(PEXPIRETIMELuaScript);
+
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.KeyOperatorScript.PEXPIRETIME);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, new { key });
             if (redisVal.Type == ResultType.Integer && redisVal.IsNull == false)
             {
@@ -285,54 +288,6 @@ namespace RedisClient.StackExchange.Internal
             var redisVal = await Database.KeyTypeAsync(key);
             return redisVal.ToRedisDataType();
         }
-
-        #endregion
-
-        #region lua scripts
-
-        private const string UNLINKLuaScript = @"local keyCount = ARGV[1]
-local result = 0
-local key = ''
-for i = 1, keyCount, 1 do
-    key = KEYS[i]
-    result = redis.pcall('UNLINK', key) + result
-end
-return result
-";
-
-        private const string EXPIRELuaScript = @"local command = 'EXPIRE'
-if @expireBehavior == '' then
-    return redis.pcall(command, @key, @seconds)
-else
-    return redis.pcall(command, @key, @seconds, @expireBehavior)
-end";
-
-        private const string PEXPIRELuaScript = @"local command = 'PEXPIRE'
-if @expireBehavior == '' then
-    return redis.pcall(command, @key, @seconds)
-else
-    return redis.pcall(command, @key, @seconds, @expireBehavior)
-end";
-
-        private const string EXPIREATLuaScript = @"local command = 'EXPIREAT'
-if @expireBehavior == '' then
-    return redis.pcall(command, @key, @timestamp)
-else
-    return redis.pcall(command, @key, @timestamp, @expireBehavior)
-end";
-
-        private const string PEXPIREATLuaScript = @"local command = 'EXPIREAT'
-if @expireBehavior == '' then
-    return redis.pcall(command, @key, @timestamp)
-else
-    return redis.pcall(command, @key, @timestamp, @expireBehavior)
-end";
-
-        private const string TTLLuaScript = @"return redis.pcall('TTL', @key)";
-        private const string PTTLLuaScript = @"return redis.pcall('PTTL', @key)";
-
-        private const string EXPIRETIMELuaScript = @"return redis.pcall('EXPIRETIME', @key)";
-        private const string PEXPIRETIMELuaScript = @"return redis.pcall('PEXPIRETIME', @key)";
 
         #endregion
     }

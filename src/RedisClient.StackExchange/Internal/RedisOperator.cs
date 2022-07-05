@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using RedisClient.Commons.Lua;
+using StackExchange.Redis;
 
 namespace RedisClient.StackExchange.Internal
 {
@@ -10,5 +11,14 @@ namespace RedisClient.StackExchange.Internal
         {
             this.Database = database;
         }
+
+        protected async Task<LuaScript> GetLuaScriptAsync(string scriptName, CancellationToken cancellationToken = default)
+        {
+            var setLuaScript = await LuaScriptLoader.LoadAsync(scriptName, cancellationToken);
+            var luaScript = LuaScript.Prepare(setLuaScript);
+
+            return luaScript;
+        }
+
     }
 }

@@ -1,11 +1,12 @@
 ﻿using RedisClient.Abstractions;
 using RedisClient.Commons.Extensions;
+using RedisClient.Commons.Lua;
 using RedisClient.Models.Consts;
 using RedisClient.Models.Enums;
 using RedisClient.Models.Exceptions;
 using RedisClient.Models.Extensions;
 using RedisClient.Models.RedisResults;
-using RedisClient.StackExchange.Extensions;
+using RedisClient.StackExchange.Convertor;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -156,7 +157,7 @@ namespace RedisClient.StackExchange.Internal
             var get = returnOldValue ? "GET" : "";
             var parameters = new { key = (RedisKey)key, value, expiryArg, expiryVal, writeBehave, get };
 
-            var luaScript = LuaScript.Prepare(SETLuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.StringOperatorScript.SET);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             /*
@@ -220,7 +221,7 @@ namespace RedisClient.StackExchange.Internal
             }
             var parameters = new { key = (RedisKey)key, expiryArg, expiryVal };
 
-            var luaScript = LuaScript.Prepare(GETEXLuaScript);
+            var luaScript = await GetLuaScriptAsync(LuaScriptName.StringOperatorScript.GETEX);
             var redisVal = await Database.ScriptEvaluateAsync(luaScript, parameters);
 
             if (redisVal == null || redisVal.IsNull)
@@ -232,59 +233,6 @@ namespace RedisClient.StackExchange.Internal
                 return redisVal.ToString()!;
             }
         }
-        #endregion
-
-        #region lua scripts
-        private const string SETLuaScript = @"local command = 'SET'
-if @get == 'GET' then
-    if @expiryArg == 'KEEPTTL' then
-        if @writeBehave ~= '' then
-            return redis.pcall(command, @key, @value, @expiryArg, @writeBehave, @get)
-        else
-            return redis.pcall(command, @key, @value, @expiryArg, @get)
-        end
-    elseif @expiryArg ~= '' then
-        if @writeBehave ~= '' then
-            return redis.pcall(command, @key, @value, @expiryArg, @expiryVal,
-                               @writeBehave, @get)
-        else
-            return redis.pcall(command, @key, @value, @expiryArg, @expiryVal, @get)
-        end
-    else
-        if @writeBehave ~= '' then
-            return redis.pcall(command, @key, @value, @writeBehave, @get)
-        else
-            return redis.pcall(command, @key, @value, @get)
-        end
-    end
-else
-    if @expiryArg == 'KEEPTTL' then
-        if @writeBehave ~= '' then
-            return redis.pcall(command, @key, @value, @expiryArg, @writeBehave)
-        else
-            return redis.pcall(command, @key, @value, @expiryArg)
-        end
-    elseif @expiryArg ~= '' then
-        if @writeBehave ~= '' then
-            return redis.pcall(command, @key, @value, @expiryArg, @expiryVal,
-                               @writeBehave)
-        else
-            return redis.pcall(command, @key, @value, @expiryArg, @expiryVal)
-        end
-    else
-        if @writeBehave ~= '' then
-            return redis.pcall(command, @key, @value, @writeBehave)
-        else
-            return redis.pcall(command, @key, @value)
-        end
-    end
-end";
-
-        private const string GETEXLuaScript = @"if (@expiryArg == 'PERSIST') then
-    return redis.pcall('GETEX', @key, @expiryArg)
-else
-    return redis.pcall('GETEX', @key, @expiryArg, @expiryVal)
-end";
         #endregion
     }
 }
