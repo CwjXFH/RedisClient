@@ -2,7 +2,7 @@
 using RedisClient.StackExchange.Internal;
 using StackExchange.Redis;
 
-namespace RedisClient.StackExchange.Extensions
+namespace RedisClient.StackExchange.Convertor
 {
     internal static class RedisKeyExtensions
     {

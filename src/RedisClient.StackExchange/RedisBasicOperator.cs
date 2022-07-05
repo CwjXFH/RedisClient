@@ -27,6 +27,14 @@ namespace RedisClient.StackExchange
 
         public IRedisStringOperator StringOperator => _stringOperator.Value;
 
+        public IRedisHashOperator HashOperator => throw new NotImplementedException();
+
+        public IRedisSetOperator SetOperator => throw new NotImplementedException();
+
+        public IRedisSortedSetOperator SortedSetOperator => throw new NotImplementedException();
+
+        public IRedisListOperator ListOperator => throw new NotImplementedException();
+
 
         #region Lazy
         private IContravariantLazy<TOperator> CreateOperator<TOperator>() where TOperator : RedisOperator
