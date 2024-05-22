@@ -13,7 +13,7 @@ serviceCollection.AddRedisClient();
 
 
 using var serviceProvider = serviceCollection.BuildServiceProvider();
-var basicOperator = serviceProvider.GetService<IRedisBasicOperator>();
+var basicOperator = serviceProvider.GetRequiredService<IRedisBasicOperator>();
 
 await basicOperator.StringOperator.SetAsync("key1", "val", TimeSpan.FromMilliseconds(10_900));
 var result = await basicOperator.KeyOperator.PTTLAsync("key1");
